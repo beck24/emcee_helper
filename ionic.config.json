@@ -1,0 +1,7 @@
+{
+  "name": "emcee_helper",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular"
+}
