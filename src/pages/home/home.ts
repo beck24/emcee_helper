@@ -1,12 +1,6 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
-
-/**
- * Generated class for the HomePage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
+import { IonicPage, NavController, NavParams, Platform } from 'ionic-angular';
+import { BluetoothProvider } from '../../providers/bluetooth/bluetooth';
 
 @IonicPage()
 @Component({
@@ -15,11 +9,31 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 })
 export class HomePage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  constructor(
+    public navCtrl: NavController,
+    public navParams: NavParams,
+    public platform: Platform,
+    public bluetooth: BluetoothProvider
+  ) {
+    bluetooth.addListener('onAdapterStateChange', this.onStateChange);
   }
 
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad HomePage');
+  getAdapterInfo() {
+    this.bluetooth.getAdapterInfo().then(
+      (res) => {
+        console.log(res);
+      },
+      (err) => {
+        console.log('error', err);
+    });
   }
 
+  onStateChange(adapterInfo) {
+    console.log('state changed');
+    console.log(adapterInfo);
+  }
+
+  requestEnable() {
+    this.bluetooth.requestEnable();
+  }
 }
