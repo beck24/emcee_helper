@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, Platform } from 'ionic-angular';
 import { BluetoothProvider } from '../../providers/bluetooth/bluetooth';
+import str2ab from 'string-to-arraybuffer';
+import ab2str from 'arraybuffer-to-string';
 
 @IonicPage()
 @Component({
@@ -67,9 +69,18 @@ export class HomePage {
     this.bluetooth.requestDiscoverable().then(() => {});
   }
 
+  listenRF() {
+    this.bluetooth.listenUsingRfcomm(this.uuid).then((socketId) => {
+      console.log('found socket id!');
+      console.log(socketId);
+    },
+    (err) => {
+      console.log(err);
+    });
+  }
+
   connectToEddie() {
     let address = '18:3A:2D:2C:8D:AA';
-    let name = 'Edison Beckett (Galaxy S4)';
 
     this.bluetooth.connect(address, this.uuid).then((res) => {
       console.log('connected1');
@@ -84,5 +95,29 @@ export class HomePage {
 
   disconnect() {
     this.bluetooth.close(this.socketId);
+  }
+
+  testConversion() {
+    let json = {
+      type: 'action',
+      name: 'alert',
+      value: 'Wrap it up',
+    };
+
+    const buffer = this.jsonToBuffer(json);
+
+    console.log(buffer);
+
+    const newJson = this.bufferToJson(buffer);
+
+    console.log(newJson);
+  }
+
+  jsonToBuffer(json) {
+    return str2ab(JSON.stringify(json));
+  }
+
+  bufferToJson(buffer) {
+    return JSON.parse(ab2str(buffer));
   }
 }
