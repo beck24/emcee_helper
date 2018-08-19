@@ -14,6 +14,19 @@
 
 
 <ion-content padding>
+  <h2>This Device</h2>
+  <p>Name: {{ bluetooth.info.name }}</p>
+  <p>Address: {{ bluetooth.info.address }}</p>
+  <p>Enabled: <span *ngIf="bluetooth.info.enabled">true</span><span *ngIf="!bluetooth.info.enabled">false</span></p>
+  <p>Discovering: <span *ngIf="bluetooth.info.discovering">true</span><span *ngIf="!bluetooth.info.discovering">false</span></p>
+  <p>Discoverable: <span *ngIf="bluetooth.info.discoverable">true</span><span *ngIf="!bluetooth.info.discoverable">false</span></p>
+
+  <button ion-button block (click)="searchForDevices()">Search For Devices</button>
+
+  <br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br>
+
   <button ion-button block (click)="getAdapterInfo()">Get Adapter Info</button>
 
   <button ion-button block (click)="requestEnable()">Request Enable</button>

@@ -1,0 +1,40 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>{{ 'bluetooth.connect.searching' | translate }}</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+
+  <ion-list>
+    <ion-item-divider>
+      {{ 'bluetooth.connect.available' | translate }}
+    </ion-item-divider>
+
+    <button
+      ion-item
+      *ngFor="let device of bluetooth.devices"
+      (click)="connect(device)"
+    >
+        <ion-icon name="bluetooth" item-start></ion-icon>
+      {{ device.name }}
+    </button>
+  </ion-list>
+
+  <div text-center>
+    <ion-spinner *ngIf="bluetooth.info.discovering"></ion-spinner>
+  </div>
+
+  <button
+    ion-button
+    *ngIf="!bluetooth.info.discovering"
+    (click)="search()"
+  >
+    Search Again
+  </button>
+
+  <button ion-button (click)="close()">Close</button>
+</ion-content>

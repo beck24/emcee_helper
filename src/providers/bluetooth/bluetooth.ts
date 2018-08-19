@@ -1,14 +1,52 @@
 import { Injectable } from '@angular/core';
+import str2ab from 'string-to-arraybuffer';
+import ab2str from 'arraybuffer-to-string';
 
 @Injectable()
 export class BluetoothProvider {
-  public devices: any = {};
+
+  public uuid: string = '94f39d29-7d6d-437d-973b-fba39e49d4ee';
+  public socketId: any;
+  public devices: any = [];
+  public info: any = {
+    name: '',
+    address: '',
+    discovering: false,
+    discoverable: false,
+    enabled: false,
+  };
+
+  public connection: any = {
+    device: {},
+    socketId: 0,
+  };
 
   constructor() {
     this.addListener('onDeviceAdded', (device) => {
       console.log('found device', device);
       this.updateDeviceName(device);
     });
+
+    this.addListener('onAdapterStateChange', (adapterInfo) => {
+      this.onStateChange(adapterInfo);
+    });
+
+    this.addListener('onAccept', (acceptInfo) => {
+      this.onAccept(acceptInfo);
+    });
+
+    this.addListener('onReceive', (receiveInfo) => {
+      this.onReceive(receiveInfo);
+    });
+
+    this.getAdapterInfo().then(
+      (adapterInfo) => {
+        this.onStateChange(adapterInfo);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   addListener(event, listener) {
@@ -193,9 +231,11 @@ export class BluetoothProvider {
     });
   }
 
-  send(socketId, arrayBuffer) {
+  send(data) {
     return new Promise((resolve, reject) => {
-      window['networking'].bluetooth.send(socketId, arrayBuffer, (bytes_sent) => {
+      const arrayBuffer = this.jsonToBuffer(data);
+
+      window['networking'].bluetooth.send(this.connection.socketId, arrayBuffer, (bytes_sent) => {
         console.log('Sent ' + bytes_sent + ' bytes');
         resolve(bytes_sent);
       },
@@ -208,9 +248,63 @@ export class BluetoothProvider {
 
   close(socketId) {
     window['networking'].bluetooth.close(socketId);
+    this.connection.device = {};
+    this.connection.socketId = 0;
   }
 
   updateDeviceName(device) {
     this.devices[device.address] = device.name;
+
+    let key = false;
+    this.devices.forEach((d, index) => {
+      if (d.address === device.address) {
+        key = index;
+      }
+    });
+
+    if (key) {
+      this.devices[key] = device;
+    }
+    else {
+      this.devices.push(device);
+    }
+  }
+
+  onStateChange(adapterInfo) {
+    let keys = Object.keys(adapterInfo);
+
+    keys.forEach((key) => {
+      this.info[key] = adapterInfo[key];
+    });
+  }
+
+  onAccept(acceptInfo) {
+    console.log('acceptInfo');
+    console.log(acceptInfo);
+
+    if (acceptInfo.socketId !== this.connection.socketId) {
+      return;
+    }
+
+    console.log('not sure what to do here');
+  }
+
+  onReceive(receiveInfo) {
+    if (receiveInfo.socketId !== this.connection.socketId) {
+      return;
+    }
+
+    const data = this.bufferToJson(receiveInfo.data);
+
+    console.log('got data!');
+    alert('received message: ' + data.message);
+  }
+
+  jsonToBuffer(json) {
+    return str2ab(JSON.stringify(json));
+  }
+
+  bufferToJson(buffer) {
+    return JSON.parse(ab2str(buffer));
   }
 }

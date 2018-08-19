@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, Platform } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, Platform, ModalController } from 'ionic-angular';
 import { BluetoothProvider } from '../../providers/bluetooth/bluetooth';
+
 import str2ab from 'string-to-arraybuffer';
 import ab2str from 'arraybuffer-to-string';
 
@@ -12,15 +13,25 @@ import ab2str from 'arraybuffer-to-string';
 export class HomePage {
 
   socketId: any;
-  uuid = '94f39d29-7d6d-437d-973b-fba39e49d4ee';
+  uuid: string = '94f39d29-7d6d-437d-973b-fba39e49d4ee';
 
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
     public platform: Platform,
+    public modalCtrl: ModalController,
     public bluetooth: BluetoothProvider,
   ) {
-    bluetooth.addListener('onAdapterStateChange', this.onStateChange);
+    
+  }
+
+  ionViewDidEnter() {
+    
+  }
+
+  searchForDevices() {
+    const modal = this.modalCtrl.create('ModalConnectPage');
+    modal.present();
   }
 
   getAdapterInfo() {
@@ -31,11 +42,6 @@ export class HomePage {
       (err) => {
         console.log('error', err);
     });
-  }
-
-  onStateChange(adapterInfo) {
-    console.log('state changed');
-    console.log(adapterInfo);
   }
 
   requestEnable() {
@@ -67,6 +73,7 @@ export class HomePage {
 
   requestDiscoverable() {
     this.bluetooth.requestDiscoverable().then(() => {});
+    this.listenRF();
   }
 
   listenRF() {
