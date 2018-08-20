@@ -253,8 +253,6 @@ export class BluetoothProvider {
   }
 
   updateDeviceName(device) {
-    this.devices[device.address] = device.name;
-
     let key = false;
     this.devices.forEach((d, index) => {
       if (d.address === device.address) {
