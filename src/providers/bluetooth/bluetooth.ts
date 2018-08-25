@@ -6,7 +6,6 @@ import ab2str from 'arraybuffer-to-string';
 export class BluetoothProvider {
 
   public uuid: string = '94f39d29-7d6d-437d-973b-fba39e49d4ee';
-  public socketId: any;
   public devices: any = [];
   public info: any = {
     name: '',
@@ -17,13 +16,12 @@ export class BluetoothProvider {
   };
 
   public connection: any = {
-    device: {},
-    socketId: 0,
+    listenSocketId: null,
+    sendSocketId: null,
   };
 
   constructor() {
     this.addListener('onDeviceAdded', (device) => {
-      console.log('found device', device);
       this.updateDeviceName(device);
     });
 
@@ -32,11 +30,20 @@ export class BluetoothProvider {
     });
 
     this.addListener('onAccept', (acceptInfo) => {
+      console.log('received onAccept');
+      console.log(acceptInfo);
       this.onAccept(acceptInfo);
     });
 
     this.addListener('onReceive', (receiveInfo) => {
+      console.log('received communication');
+      console.log(receiveInfo);
+      alert(JSON.stringify(this.bufferToJson(receiveInfo.data)));
       this.onReceive(receiveInfo);
+    });
+
+    this.addListener('onReceiveError', (errorInfo) => {
+      this.onReceiveError(errorInfo);
     });
 
     this.getAdapterInfo().then(
@@ -47,6 +54,10 @@ export class BluetoothProvider {
         console.log(error);
       }
     );
+  }
+
+  isConnected() {
+    return this.connection.sendSocketId !== null;
   }
 
   addListener(event, listener) {
@@ -232,10 +243,14 @@ export class BluetoothProvider {
   }
 
   send(data) {
+    if (!this.isConnected()) {
+      return Promise.reject('not connected');
+    }
+
     return new Promise((resolve, reject) => {
       const arrayBuffer = this.jsonToBuffer(data);
 
-      window['networking'].bluetooth.send(this.connection.socketId, arrayBuffer, (bytes_sent) => {
+      window['networking'].bluetooth.send(this.connection.sendSocketId, arrayBuffer, (bytes_sent) => {
         console.log('Sent ' + bytes_sent + ' bytes');
         resolve(bytes_sent);
       },
@@ -246,10 +261,17 @@ export class BluetoothProvider {
     });
   }
 
-  close(socketId) {
-    window['networking'].bluetooth.close(socketId);
-    this.connection.device = {};
-    this.connection.socketId = 0;
+  close() {
+    if (this.connection.listenSocketId) {
+      window['networking'].bluetooth.close(this.connection.listenSocketId);
+    }
+
+    if (this.connection.sendSocketId) {
+      window['networking'].bluetooth.close(this.connection.sendSocketId);
+    }
+    
+    this.connection.listenSocketId = null;
+    this.connection.sendSocketId = null;
   }
 
   updateDeviceName(device) {
@@ -260,7 +282,7 @@ export class BluetoothProvider {
       }
     });
 
-    if (key) {
+    if (key !== false) {
       this.devices[key] = device;
     }
     else {
@@ -280,15 +302,17 @@ export class BluetoothProvider {
     console.log('acceptInfo');
     console.log(acceptInfo);
 
-    if (acceptInfo.socketId !== this.connection.socketId) {
+    if (acceptInfo.socketId !== this.connection.listenSocketId) {
       return;
     }
+
+    this.connection.sendSocketId = acceptInfo.clientSocketId;
 
     console.log('not sure what to do here');
   }
 
   onReceive(receiveInfo) {
-    if (receiveInfo.socketId !== this.connection.socketId) {
+    if (receiveInfo.socketId !== this.connection.listenSocketId) {
       return;
     }
 
@@ -296,6 +320,18 @@ export class BluetoothProvider {
 
     console.log('got data!');
     alert('received message: ' + data.message);
+  }
+
+  onReceiveError(errorInfo) {
+    console.log('error', errorInfo);
+    if (errorInfo.socketId !== this.connection.listenSocketId) {
+      return;
+    }
+
+    console.log(errorInfo.errorMessage);
+    alert('onReceiveError');
+    alert(errorInfo.errorMessage);
+    this.close();
   }
 
   jsonToBuffer(json) {

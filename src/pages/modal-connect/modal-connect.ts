@@ -25,12 +25,13 @@ export class ModalConnectPage {
   search() {
     this.bluetooth.getDevices().then((devices: [any]) => {
 
-      for (var i = 0; i < devices.length; i++) {
-        this.bluetooth.updateDeviceName(devices[i]);
-      }
+      devices.forEach((device) => {
+        this.bluetooth.updateDeviceName(device);
+      });
 
       this.bluetooth.startDiscovery().then(() => {
         console.log('discovery done');
+        console.log(this.bluetooth.devices);
       });
     });
   }
@@ -41,8 +42,22 @@ export class ModalConnectPage {
       (socketId) => {
         console.log('success!');
 
-        this.bluetooth.connection.device = device;
-        this.bluetooth.connection.socketId = socketId;
+        this.bluetooth.connection.sendSocketId = socketId;
+
+        console.log('sending data');
+        this.bluetooth.send({ message: 'Hello world' });
+
+        // listen for our own return messages
+        // this.bluetooth.listenUsingRfcomm(this.bluetooth.uuid).then((socketId) => {
+        //   console.log('found socket id!');
+        //   console.log(socketId);
+        //   this.bluetooth.connection.socketId = socketId;
+    
+        //   this.bluetooth.send({ message: 'ok cool, both ways' });
+        // },
+        // (err) => {
+        //   console.log(err);
+        // });
       },
       (err) => {
         console.log('fail...');

@@ -1,9 +1,3 @@
-<!--
-  Generated template for the HomePage page.
-
-  See http://ionicframework.com/docs/components/#navigation for more info on
-  Ionic pages and navigation.
--->
 <ion-header>
 
   <ion-navbar>
@@ -20,26 +14,17 @@
   <p>Enabled: <span *ngIf="bluetooth.info.enabled">true</span><span *ngIf="!bluetooth.info.enabled">false</span></p>
   <p>Discovering: <span *ngIf="bluetooth.info.discovering">true</span><span *ngIf="!bluetooth.info.discovering">false</span></p>
   <p>Discoverable: <span *ngIf="bluetooth.info.discoverable">true</span><span *ngIf="!bluetooth.info.discoverable">false</span></p>
+  <p>Is Connected: <span *ngIf="bluetooth.isConnected()">true</span><span *ngIf="!bluetooth.isConnected()">false</span></p>
 
   <button ion-button block (click)="searchForDevices()">Search For Devices</button>
 
   <br><br><br><br><br><br><br>
-  <br><br><br><br><br><br><br>
-  <br><br><br><br><br><br><br>
-
-  <button ion-button block (click)="getAdapterInfo()">Get Adapter Info</button>
 
   <button ion-button block (click)="requestEnable()">Request Enable</button>
 
-  <button ion-button block (click)="getDevices()">Get Devices</button>
-
-  <button ion-button block (click)="listen()">Listen</button>
-
   <button ion-button block (click)="requestDiscoverable()">Request Discoverable</button>
 
-  <button ion-button block (click)="connectToEddie()">Connect To Eddie</button>
+  <button ion-button block (click)="sendMessage()">Send Message</button>
 
   <button ion-button block (click)="disconnect()">Disconnect</button>
-
-  <button ion-button block (click)="testConversion()">Test Conversion</button>
 </ion-content>
