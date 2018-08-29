@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Platform } from 'ionic-angular';
 import str2ab from 'string-to-arraybuffer';
 import ab2str from 'arraybuffer-to-string';
 
@@ -20,7 +21,14 @@ export class BluetoothProvider {
     sendSocketId: null,
   };
 
-  constructor() {
+  constructor(
+    public platform: Platform
+  ) {
+
+    if (!this.canUse()) {
+      return;
+    }
+
     this.addListener('onDeviceAdded', (device) => {
       this.updateDeviceName(device);
     });
@@ -56,11 +64,25 @@ export class BluetoothProvider {
     );
   }
 
+  canUse() {
+    const result = this.platform.is('android') && this.platform.is('cordova');
+
+    if (!result) {
+      console.log('This device cannot use bluetooth');
+    }
+
+    return result;
+  }
+
   isConnected() {
     return this.connection.sendSocketId !== null;
   }
 
   addListener(event, listener) {
+    if (!this.canUse()) {
+      return;
+    }
+
     switch (event) {
       case 'onAdapterStateChange':
         window['networking'].bluetooth.onAdapterStateChanged.addListener(listener);
@@ -81,6 +103,10 @@ export class BluetoothProvider {
   }
 
   removeListener(event, listener) {
+    if (!this.canUse()) {
+      return;
+    }
+
     switch (event) {
       case 'onAdapterStateChange':
         window['networking'].bluetooth.onAdapterStateChanged.removeListener(listener);
@@ -101,6 +127,10 @@ export class BluetoothProvider {
   }
 
   hasListener(event, listener) {
+    if (!this.canUse()) {
+      return false;
+    }
+
     switch (event) {
       case 'onAdapterStateChange':
         return window['networking'].bluetooth.onAdapterStateChanged.hasListener(listener);
@@ -120,6 +150,10 @@ export class BluetoothProvider {
   }
 
   hasListeners(event) {
+    if (!this.canUse()) {
+      return false;
+    }
+
     switch (event) {
       case 'onAdapterStateChange':
         return window['networking'].bluetooth.onAdapterStateChanged.hasListeners();
@@ -139,6 +173,16 @@ export class BluetoothProvider {
   }
 
   getAdapterInfo() {
+    if (!this.canUse()) {
+      return Promise.resolve({
+        address: 'Invalid Device',
+        name: 'Device',
+        enabled: false,
+        discovering: false,
+        discoverable: false,
+      });
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.getAdapterState(function (adapterInfo) {
         // The adapterInfo object has the following properties:
@@ -155,6 +199,10 @@ export class BluetoothProvider {
   }
 
   requestEnable() {
+    if (!this.canUse()) {
+      return Promise.reject(false);
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.requestEnable(() => {
         // The adapter is now enabled
@@ -168,6 +216,10 @@ export class BluetoothProvider {
   }
 
   enable() {
+    if (!this.canUse()) {
+      return Promise.reject(false);
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.enable(() => {
         // The adapter is now enabled
@@ -181,6 +233,10 @@ export class BluetoothProvider {
   }
 
   getDevices() {
+    if (!this.canUse()) {
+      return Promise.resolve([]);
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.getDevices((devices) => {
         resolve(devices);
@@ -192,6 +248,10 @@ export class BluetoothProvider {
   }
 
   startDiscovery() {
+    if (!this.canUse()) {
+      return Promise.reject('Invalid Device Type');
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.startDiscovery(() => {
         // Stop discovery after 30 seconds.
@@ -207,6 +267,10 @@ export class BluetoothProvider {
   }
 
   requestDiscoverable() {
+    if (!this.canUse()) {
+      return Promise.reject('Invalid Device Type');
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.requestDiscoverable(() => {
         resolve();
@@ -218,6 +282,10 @@ export class BluetoothProvider {
   }
 
   listenUsingRfcomm(uuid) {
+    if (!this.canUse()) {
+      return Promise.reject('Invalid Device Type');
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.listenUsingRfcomm(uuid, (serverSocketId) => {
         // Keep a handle to the serverSocketId so that you can later accept connections (onAccept) from this socket.
@@ -230,6 +298,10 @@ export class BluetoothProvider {
   }
 
   connect(address, uuid) {
+    if (this.canUse()) {
+      return Promise.reject('Invalid Device Type');
+    }
+
     return new Promise((resolve, reject) => {
       window['networking'].bluetooth.connect(address, uuid, (socketId) => {
         // Profile implementation here.
@@ -243,7 +315,7 @@ export class BluetoothProvider {
   }
 
   send(data) {
-    if (!this.isConnected()) {
+    if (!this.isConnected() || !this.canUse()) {
       return Promise.reject('not connected');
     }
 
@@ -262,6 +334,10 @@ export class BluetoothProvider {
   }
 
   close() {
+    if (!this.canUse()) {
+      return;
+    }
+
     if (this.connection.listenSocketId) {
       window['networking'].bluetooth.close(this.connection.listenSocketId);
     }
@@ -275,6 +351,10 @@ export class BluetoothProvider {
   }
 
   updateDeviceName(device) {
+    if (!this.canUse()) {
+      return;
+    }
+
     let key = false;
     this.devices.forEach((d, index) => {
       if (d.address === device.address) {
@@ -291,6 +371,10 @@ export class BluetoothProvider {
   }
 
   onStateChange(adapterInfo) {
+    if (!this.canUse()) {
+      return;
+    }
+
     let keys = Object.keys(adapterInfo);
 
     keys.forEach((key) => {
@@ -299,6 +383,10 @@ export class BluetoothProvider {
   }
 
   onAccept(acceptInfo) {
+    if (!this.canUse()) {
+      return;
+    }
+
     console.log('acceptInfo');
     console.log(acceptInfo);
 
@@ -312,6 +400,10 @@ export class BluetoothProvider {
   }
 
   onReceive(receiveInfo) {
+    if (this.canUse()) {
+      return;
+    }
+
     if (receiveInfo.socketId !== this.connection.listenSocketId) {
       return;
     }
@@ -323,6 +415,10 @@ export class BluetoothProvider {
   }
 
   onReceiveError(errorInfo) {
+    if (!this.canUse()) {
+      return;
+    }
+
     console.log('error', errorInfo);
     if (errorInfo.socketId !== this.connection.listenSocketId) {
       return;

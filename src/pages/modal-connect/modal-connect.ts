@@ -32,6 +32,9 @@ export class ModalConnectPage {
       this.bluetooth.startDiscovery().then(() => {
         console.log('discovery done');
         console.log(this.bluetooth.devices);
+      })
+      .catch((err) => {
+        console.log(err);
       });
     });
   }
@@ -63,7 +66,7 @@ export class ModalConnectPage {
         console.log('fail...');
         console.log(err);
       }
-    )
+    );
   }
 
   close() {

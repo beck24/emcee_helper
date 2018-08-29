@@ -25,11 +25,15 @@ export class HomePage {
   }
 
   requestEnable() {
-    this.bluetooth.requestEnable();
+    this.bluetooth.requestEnable().catch((err) => {
+      console.log(err);
+    });
   }
 
   requestDiscoverable() {
-    this.bluetooth.requestDiscoverable().then(() => {});
+    this.bluetooth.requestDiscoverable().catch((err) => {
+      console.log(err);
+    });
     
     this.bluetooth.listenUsingRfcomm(this.bluetooth.uuid).then((socketId) => {
       console.log('found socket id!');
@@ -40,11 +44,16 @@ export class HomePage {
     },
     (err) => {
       console.log(err);
+    })
+    .catch((err) => {
+      console.log(err);
     });
   }
 
   sendMessage() {
-    this.bluetooth.send({ message: 'message sent!' });
+    this.bluetooth.send({ message: 'message sent!' }).catch((err) => {
+      console.log(err);
+    });
   }
 
   disconnect() {
