@@ -1,0 +1,15 @@
+<ion-content
+  class="timer-wrapper"
+  [class.good]="timerClasses.good"
+  [class.warn]="timerClasses.warn"
+  [class.danger]="timerClasses.danger"
+>
+    <timer [control]="timerControl" (result)="timerResult($event)"></timer>
+</ion-content>
+<ion-footer>
+    <button ion-button (click)="startTimer()">Start</button>
+    <button ion-button (click)="stopTimer()">Stop</button>
+    <button ion-button (click)="resetTimer()">Reset</button>
+
+    <button ion-button (click)="goHome()">Go Home</button>
+</ion-footer>

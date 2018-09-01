@@ -8,6 +8,8 @@ import { BluetoothProvider } from '../../providers/bluetooth/bluetooth';
   templateUrl: 'home.html',
 })
 export class HomePage {
+  timerControl: String = 'reset';
+  cdControl: String = 'reset';
 
   constructor(
     public navCtrl: NavController,
@@ -16,7 +18,43 @@ export class HomePage {
     public modalCtrl: ModalController,
     public bluetooth: BluetoothProvider,
   ) {
-    
+
+  }
+
+  startTimer() {
+    this.timerControl = 'start';
+  }
+
+  stopTimer() {
+    this.timerControl = 'stop';
+  }
+
+  resetTimer() {
+    this.timerControl = 'reset';
+  }
+
+  timerResult(event) {
+    console.log(event);
+  }
+
+  startCD() {
+    this.cdControl = 'start';
+  }
+
+  stopCD() {
+    this.cdControl = 'stop';
+  }
+
+  resetCD() {
+    this.cdControl = 'reset';
+  }
+
+  cdResult(event) {
+    console.log(event);
+  }
+
+  goTimer() {
+    this.navCtrl.setRoot('TimerPage');
   }
 
   searchForDevices() {

@@ -1,0 +1,18 @@
+page-timer {
+    .timer-wrapper {
+        background-color: white;
+        transition: 1.5s ease infinite;
+
+        &.timer-good {
+            background-color: green;
+        }
+
+        &.timer-warn {
+            background-color: yellow;
+        }
+
+        &.timer-danger {
+            background-color: red;
+        }
+    }
+}

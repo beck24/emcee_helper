@@ -8,6 +8,19 @@
 
 
 <ion-content padding>
+
+  <timer [control]="timerControl" (result)="timerResult($event)"></timer>
+  <button ion-button (click)="startTimer()">Start</button>
+  <button ion-button (click)="stopTimer()">Stop</button>
+  <button ion-button (click)="resetTimer()">Reset</button>
+
+  <countdown [control]="cdControl" time="120000" (result)="cdResult($event)"></countdown>
+  <button ion-button (click)="startCD()">Start</button>
+  <button ion-button (click)="stopCD()">Stop</button>
+  <button ion-button (click)="resetCD()">Reset</button>
+
+  <button ion-button block (click)="goTimer()">Go TImer</button> 
+
   <h2>This Device</h2>
   <p>Name: {{ bluetooth.info.name }}</p>
   <p>Address: {{ bluetooth.info.address }}</p>
