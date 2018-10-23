@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Platform } from 'ionic-angular';
 import str2ab from 'string-to-arraybuffer';
 import ab2str from 'arraybuffer-to-string';
+import { LoggerProvider } from '../../providers/logger/logger';
 
 @Injectable()
 export class BluetoothProvider {
@@ -22,10 +23,13 @@ export class BluetoothProvider {
   };
 
   constructor(
-    public platform: Platform
+    public platform: Platform,
+    public logger: LoggerProvider,
   ) {
+    this.logger.log('Constructing BT');
 
     if (!this.canUse()) {
+      this.logger.log('Device not supported');
       return;
     }
 
@@ -40,10 +44,12 @@ export class BluetoothProvider {
     this.addListener('onAccept', (acceptInfo) => {
       console.log('received onAccept');
       console.log(acceptInfo);
+      this.logger.log('received onAccept: ' + JSON.stringify(acceptInfo));
       this.onAccept(acceptInfo);
     });
 
     this.addListener('onReceive', (receiveInfo) => {
+      this.logger.log('received communication: ' + JSON.stringify(receiveInfo));
       console.log('received communication');
       console.log(receiveInfo);
       alert(JSON.stringify(this.bufferToJson(receiveInfo.data)));
@@ -60,6 +66,7 @@ export class BluetoothProvider {
       },
       (error) => {
         console.log(error);
+        this.logger.log('adapter info error: ' + JSON.stringify(error));
       }
     );
   }
@@ -69,6 +76,7 @@ export class BluetoothProvider {
 
     if (!result) {
       console.log('This device cannot use bluetooth');
+      this.logger.log('This device cannot use bluetooth');
     }
 
     return result;
@@ -193,6 +201,7 @@ export class BluetoothProvider {
         // discoverable: Boolean --> Indicates whether or not the adapter is currently discoverable.
         resolve(adapterInfo);
       }, function (errorMessage) {
+        this.logger.log('error on getAdapterState: ' + JSON.stringify(errorMessage));
         reject(errorMessage);
       });
     });
@@ -308,6 +317,7 @@ export class BluetoothProvider {
         resolve(socketId);
       },
       (err) => {
+        this.logger.log('Connection failed: ' + JSON.stringify(err));
         console.log('Connection failed: ' + err);
         reject(err);
       });
@@ -323,10 +333,10 @@ export class BluetoothProvider {
       const arrayBuffer = this.jsonToBuffer(data);
 
       window['networking'].bluetooth.send(this.connection.sendSocketId, arrayBuffer, (bytes_sent) => {
-        console.log('Sent ' + bytes_sent + ' bytes');
         resolve(bytes_sent);
       },
       (err) => {
+        this.logger.log('send failed: ' + JSON.stringify(err));
         console.log('Send failed: ' + err);
         reject(err);
       });
@@ -389,6 +399,7 @@ export class BluetoothProvider {
 
     console.log('acceptInfo');
     console.log(acceptInfo);
+    this.logger.log('acceptInfo: ' + JSON.stringify(acceptInfo));
 
     if (acceptInfo.socketId !== this.connection.listenSocketId) {
       return;
@@ -397,6 +408,7 @@ export class BluetoothProvider {
     this.connection.sendSocketId = acceptInfo.clientSocketId;
 
     console.log('not sure what to do here');
+    this.logger.log('accepted... not sure what to do here');
   }
 
   onReceive(receiveInfo) {
@@ -409,9 +421,27 @@ export class BluetoothProvider {
     }
 
     const data = this.bufferToJson(receiveInfo.data);
+    console.log(data);
+    this.logger.log('onreceive data: ' + JSON.stringify(data));
 
-    console.log('got data!');
-    alert('received message: ' + data.message);
+    if (data.hasOwnProperty('message')) {
+      alert('received message: ' + data.message);
+    }
+
+    // somehow dispatch on type property
+    if (data.hasOwnProperty('type')) {
+      switch (data.type) {
+        case 'reciprocalConnect':
+          this.connect(data.address, data.uuid).then((socketId) => {
+            this.connection.sendSocketId = socketId;
+          }).catch((err) => {
+            this.logger.log('recprocalconnect error: ' + JSON.stringify(err));
+            console.log('reciprocalConnect error');
+            console.log(err);
+          })
+        break;
+      }
+    }
   }
 
   onReceiveError(errorInfo) {
@@ -419,15 +449,18 @@ export class BluetoothProvider {
       return;
     }
 
+    this.logger.log('onReceiveError: ' + JSON.stringify(errorInfo));
     console.log('error', errorInfo);
-    if (errorInfo.socketId !== this.connection.listenSocketId) {
+    if (errorInfo.socketId !== this.connection.sendSocketId) {
       return;
     }
 
     console.log(errorInfo.errorMessage);
     alert('onReceiveError');
     alert(errorInfo.errorMessage);
-    this.close();
+    if (errorInfo.errorMessage.startsWith('bt socket closed')) {
+      this.close();
+    }
   }
 
   jsonToBuffer(json) {

@@ -1,0 +1,25 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Console Log</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+
+  <ion-list>
+    <ion-item-divider>
+      Log Entries
+    </ion-item-divider>
+  </ion-list>
+
+  <div *ngFor="let log of logger.messages" class="log">
+    <div>{{ formatTime(log.time) }}:</div>
+    {{ log.message }}
+  </div>
+
+  <button ion-button (click)="close()">Close</button>
+  <button ion-button color="danger" (click)="clearLog()">Clear Log</button>
+</ion-content>

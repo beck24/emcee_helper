@@ -29,10 +29,7 @@ export class ModalConnectPage {
         this.bluetooth.updateDeviceName(device);
       });
 
-      this.bluetooth.startDiscovery().then(() => {
-        console.log('discovery done');
-        console.log(this.bluetooth.devices);
-      })
+      this.bluetooth.startDiscovery()
       .catch((err) => {
         console.log(err);
       });
@@ -51,16 +48,21 @@ export class ModalConnectPage {
         this.bluetooth.send({ message: 'Hello world' });
 
         // listen for our own return messages
-        // this.bluetooth.listenUsingRfcomm(this.bluetooth.uuid).then((socketId) => {
-        //   console.log('found socket id!');
-        //   console.log(socketId);
-        //   this.bluetooth.connection.socketId = socketId;
-    
-        //   this.bluetooth.send({ message: 'ok cool, both ways' });
-        // },
-        // (err) => {
-        //   console.log(err);
-        // });
+        if (!this.bluetooth.connection.listenSocketId) {
+          this.bluetooth.listenUsingRfcomm(this.bluetooth.uuid).then((socketId) => {
+            this.bluetooth.connection.listenSocketId = socketId;
+
+            console.log(this.bluetooth.connection);
+
+            this.bluetooth.send({ type: 'reciprocalConnect', data: {
+              uuid: this.bluetooth.uuid,
+              address: this.bluetooth.info.address,
+            }});
+          },
+          (err) => {
+            console.log(err);
+          });
+        }
       },
       (err) => {
         console.log('fail...');
