@@ -347,12 +347,15 @@ export class BluetoothProvider {
     if (!this.canUse()) {
       return;
     }
+    this.logger.log('closing connections');
 
     if (this.connection.listenSocketId) {
+      this.logger.log('closing connection: ' + this.connection.listenSocketId);
       window['networking'].bluetooth.close(this.connection.listenSocketId);
     }
 
     if (this.connection.sendSocketId) {
+      this.logger.log('closing connection: ' + this.connection.sendSocketId);
       window['networking'].bluetooth.close(this.connection.sendSocketId);
     }
     
@@ -364,6 +367,8 @@ export class BluetoothProvider {
     if (!this.canUse()) {
       return;
     }
+
+    this.logger.log('found device: ' + JSON.stringify(device));
 
     let key = false;
     this.devices.forEach((d, index) => {

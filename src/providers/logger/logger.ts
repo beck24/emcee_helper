@@ -20,6 +20,8 @@ export class LoggerProvider {
       };
 
       this.messages.push(log);
+
+      console.log(message);
   }
 
   clearLog() {
